@@ -15,7 +15,7 @@ def run():
     out = xarray.map_blocks(
         test_fn,
         ds,
-        # template=ds,
+        template=ds,
     )
     out.compute()
 
