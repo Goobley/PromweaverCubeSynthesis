@@ -97,8 +97,8 @@ if __name__ == "__main__":
     z_shifted = y_axis[0, :].value / 1e2
     z_shifted -= np.min(z_shifted)
     z_shifted += base_altitude
+    z[:] = z_shifted
 
-    z[:] = y_axis[0, :] / 1e2
     nc_temperature = nc.createVariable("temperature", "f8", (x_dim, y_dim, z_dim))
     nc_temperature[...] = temperature[:, None, :]
     nc_vx = nc.createVariable("vx", "f8", (x_dim, y_dim, z_dim))

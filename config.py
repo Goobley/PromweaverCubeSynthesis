@@ -46,6 +46,8 @@ class PromweaverCubeConfig(BaseModel):
     """Number of processes to use (default: scheduler choice)"""
     num_threads: int = 1
     """Number of threads per process (default 1)"""
+    memory_limit: str = "2GB"
+    """Memory limit per process before Nanny restarts it"""
     mode : Union[Literal["Filament"], Literal["Prominence"], Literal["Both"]]
     """Synthesis mode"""
     bc_type: Union[Literal["UniformJ"], Literal["Cones"]] = "Cones"

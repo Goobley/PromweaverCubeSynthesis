@@ -119,7 +119,7 @@ def compute_bc_table(conf: PromweaverCubeConfig, Nthreads=1):
     bc_table = pw.tabulate_bc(bc_ctx)
     return bc_table
 
-def compute_model(data, conf: PromweaverCubeConfig, bc_table, projection):
+def compute_model(data, conf: PromweaverCubeConfig, bc_table, projection, quiet=True):
     gc.collect()
     bc_provider = pw.TabulatedPromBcProvider(**bc_table)
 
@@ -169,19 +169,20 @@ def compute_model(data, conf: PromweaverCubeConfig, bc_table, projection):
         conserve_charge=conf.conserve_charge,
         conserve_pressure=conf.conserve_pressure,
         ctx_kwargs=conf.ctx_kwargs,
+        Nthreads=conf.num_threads,
     )
+    mus = np.array(conf.synth_config.mus)
+    synth_wavelengths = conf.synth_config.wavelengths
+    if synth_wavelengths is not None:
+        synth_wavelengths = np.array(synth_wavelengths)
     try:
         # TODO(cmo): Depth data
         num_iter = model.iterate_se(
-            quiet=True,
+            quiet=quiet,
             popsTol=conf.pops_tol,
             prdIterTol=conf.prd_tol,
             JTol=conf.J_tol,
         )
-        synth_wavelengths = conf.synth_config.wavelengths
-        if synth_wavelengths is not None:
-            synth_wavelengths = np.array(synth_wavelengths)
-        mus = np.array(conf.synth_config.mus)
         Iout = model.compute_rays(mus=mus, wavelengths=synth_wavelengths, compute_rays_kwargs={"squeeze": False})[:, :, 0]
         if synth_wavelengths is None:
             synth_wavelengths = model.spect.wavelength
@@ -230,7 +231,10 @@ def compute_model(data, conf: PromweaverCubeConfig, bc_table, projection):
             "z": data.z,
         }
         data_vars = {
-            "I": ([*chunked_axes, "mu_synth", "wavelength"], np.array(-1, dtype=np.int32).reshape(1, 1)),
+            "I": (
+                [*chunked_axes, "mu_synth", "wavelength"],
+                np.zeros((1, 1, mus.shape[0], synth_wavelengths.shape[0]))
+            ),
             "num_iter": (chunked_axes, np.array(-1, dtype=np.int32).reshape(1, 1))
         }
         spatial_shape = [data.sizes[k] for k in ["x", "y", "z"]]
@@ -278,7 +282,7 @@ if __name__ == "__main__":
         "distributed.worker.memory.terminate": 0.94,
     })
     config = load_config(args.config_path)
-    client = Client(n_workers=config.num_processes, threads_per_worker=config.num_threads, memory_limit="2GB")
+    client = Client(n_workers=config.num_processes, threads_per_worker=1, memory_limit=config.memory_limit)
     print(f"Dask dashboard: <{client.dashboard_link}>")
     bc_table = compute_bc_table(config, Nthreads=config.num_threads)
 

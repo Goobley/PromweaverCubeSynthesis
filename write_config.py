@@ -1,12 +1,16 @@
 from config import PromweaverCubeConfig, AtomicConfig
 
 basic_config = PromweaverCubeConfig(
-    cube_path="valeriia_a0335_prom.nc",
-    output_path="a0335_prom_synth.nc",
-    mode="Prominence",
+    cube_path="sparse_fil.nc",
+    output_path="sparse_fil_synth.nc",
+    mode="Filament",
     atoms=AtomicConfig(
         active_atoms=["H", "Ca"]
-    )
+    ),
+    prd=True,
+    num_processes=8,
+    num_threads=2,
+    memory_limit="4GB",
 )
 content = basic_config.model_dump_json(indent=2)
 
