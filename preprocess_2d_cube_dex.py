@@ -57,25 +57,44 @@ if __name__ == "__main__":
     y_top = 40
 
     # Resolution
+    grid_size = 31.25e5 # cm
     nyy = 1280
     nxx = 1536
     # NOTE(cmo): Drop resolution for initial testing
     # nyy //= 2
     # nxx //= 2
 
+    x_left = -12
+    x_right = 12
+    y_bottom = 0
+    y_top = 32
+
+    # NOTE(cmo): Double resolution inside crop.
+    nxx = 1536
+    nyy = 2048
+
+    # NOTE(cmo): Quadruple resolution inside crop.
+    nxx = 1536*2
+    nyy = 2048*2
+
+    # NOTE(cmo): Triple resolution inside crop.
+    nxx = 768*3
+    nyy = 1024*3
+
     grid_kwargs = {
         "left_edge": [x_left, y_bottom, 0],
         "right_edge": [x_right, y_top, 1],
         "dims": [nxx, nyy, 1]
     }
-    y_axis = ds.arbitrary_grid(**grid_kwargs)['y']
-    x_axis = ds.arbitrary_grid(**grid_kwargs)['x']
-    pressure = ds.arbitrary_grid(**grid_kwargs)['e'][:, :, 0] * unit_pressure
-    temperature = ds.arbitrary_grid(**grid_kwargs)['Te'][:, :, 0] * unit_temperature
-    rho = ds.arbitrary_grid(**grid_kwargs)['rho']
-    mom_x = ds.arbitrary_grid(**grid_kwargs)['m1']
-    mom_y = ds.arbitrary_grid(**grid_kwargs)['m2']
-    mom_z = ds.arbitrary_grid(**grid_kwargs)['m3']
+    grid = ds.arbitrary_grid(**grid_kwargs)
+    y_axis = grid['y']
+    x_axis = grid['x']
+    pressure = grid['e'][:, :, 0] * unit_pressure
+    temperature = grid['Te'][:, :, 0] * unit_temperature
+    rho = grid['rho']
+    mom_x = grid['m1']
+    mom_y = grid['m2']
+    mom_z = grid['m3']
     v_x = mom_x[:, :, 0] * unit_velocity / rho[:, :, 0]
     v_y = mom_y[:, :, 0] * unit_velocity / rho[:, :, 0]
     v_z = mom_z[:, :, 0] * unit_velocity / rho[:, :, 0]
@@ -109,7 +128,7 @@ if __name__ == "__main__":
     nc_ne[...] = np.ascontiguousarray(ne.astype(np.float32))
 
     voxel_scale = (y_axis[0, 1] - y_axis[0, 0]).value / 1e2
-    assert voxel_scale == (x_axis[1, 0] - x_axis[0, 0]).value / 1e2
+    assert abs(voxel_scale - ((x_axis[1, 0] - x_axis[0, 0]).value / 1e2)) < 1e-2
     scale = nc.createVariable("voxel_scale", "f4")
     scale[...] = voxel_scale
     altitude = nc.createVariable("offset_z", "f4")

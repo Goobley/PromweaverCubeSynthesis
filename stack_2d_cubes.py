@@ -35,11 +35,28 @@ if __name__ == "__main__":
     # slice_numbers = np.arange(0, 200, 10, dtype=np.int32)
     # slice_numbers = np.arange(200, 400, 10, dtype=np.int32)
     # slice_numbers = np.arange(400, 600, 10, dtype=np.int32)
+    # slice_numbers = np.arange(400, 500, 10, dtype=np.int32)
+    slice_numbers = np.arange(500, 600, 10, dtype=np.int32)
+    # slice_numbers = np.arange(600, 700, 10, dtype=np.int32)
     # slice_numbers = np.arange(600, 800, 10, dtype=np.int32)
-    slice_numbers = np.arange(800, 1000, 10, dtype=np.int32)
+    # slice_numbers = np.arange(800, 1000, 10, dtype=np.int32)
+
+    # x_left = -24
+    # x_right = 24
+    # y_bottom = 0
+    # y_top = 40
+
+    # nyy = 1280
+    # nxx = 1536
+
+    x_left = -12
+    x_right = 12
+    y_bottom = 0
+    y_top = 32
+
     # Resolution
-    nyy = 1280
-    nxx = 1536
+    nxx = 768
+    nyy = 1024
     if args.is_prom_view:
         nyy //= 16
     else:
@@ -82,11 +99,6 @@ if __name__ == "__main__":
     for slice_idx, slice_num in enumerate(slice_numbers):
         ds = yt.load(f"{args.input_prefix}{slice_num:04d}.dat", units_override=units, unit_system="cgs")
         ds.add_field(("gas", "Temp"), function=temperature_, units="K", sampling_type="cell", force_override=True)
-
-        x_left = -24
-        x_right = 24
-        y_bottom = 0
-        y_top = 40
 
 
         grid_kwargs = {
